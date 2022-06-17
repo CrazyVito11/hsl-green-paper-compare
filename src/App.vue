@@ -27,7 +27,7 @@
 
 <script>
 import GreenPaper from './components/GreenPaper.vue';
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export default {
     name: 'App',
@@ -36,6 +36,7 @@ export default {
     },
     setup() {
         const greenPapers = ref([]);
+        const initialData = new URL(window.location.href).searchParams.get("l");
 
         const addGreenPaper = () => {
             greenPapers.value.push({
@@ -65,9 +66,42 @@ export default {
             return greenPaperConflicts;
         });
 
-        // Add 2 empty compares by default
-        addGreenPaper();
-        addGreenPaper();
+        const updateUrl = () => {
+            const queryParams = {
+                l: JSON.stringify(greenPapers.value.map((greenPaper) => {
+                    return {
+                        n: greenPaper.name,
+                        a: greenPaper.answers.join("_")
+                    };
+                }))
+            };
+
+            window.history.pushState(queryParams, document.title, `${window.location.pathname}?${new URLSearchParams(queryParams).toString()}`);
+        }
+
+        if (initialData) {
+            // Restore the compare data from the URL
+            JSON.parse(initialData).forEach((greenPaper) => {
+                greenPapers.value.push({
+                    name: greenPaper.n,
+                    answers: greenPaper.a.split("_")
+                });
+            });
+        } else {
+            // Add 2 empty compares by default
+            addGreenPaper();
+            addGreenPaper();
+        }
+
+        watch(
+            () => greenPapers,
+            () => {
+                updateUrl();
+            },
+            {
+                deep: true
+            }
+        );
 
         return {
             greenPapers,

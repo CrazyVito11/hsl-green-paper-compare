@@ -95,9 +95,9 @@ export default {
         );
 
         watch(
-            () => name,
+            () => name.value,
             (newName) => {
-                this.$emit("new-name", newName);
+                emit("new-name", newName);
             }
         );
 

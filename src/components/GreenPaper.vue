@@ -13,6 +13,10 @@
                 </span>
             </h3>
 
+            <div class="flex mx-auto">
+                <input type="checkbox" class="my-auto" v-model="markedAsMaster"><span class="my-auto ml-1 dark:text-white">Mark as master</span>
+            </div>
+
             <input
                 type="text"
                 v-model="answerInput"
@@ -55,12 +59,13 @@ export default {
             required: true,
         }
     },
-    emits: ["new-name", "remove"],
+    emits: ["new-name", "new-marked-as-master", "remove"],
     components: {},
     setup(props, { emit }) {
-        const name        = ref("");
-        const answers     = ref([]);
-        const answerInput = ref("");
+        const name           = ref("");
+        const answers        = ref([]);
+        const markedAsMaster = ref(false);
+        const answerInput    = ref("");
 
         const handleAnswerInput = (event) => {
             const allowedValues = ["A", "B", "C", "D", "E", "F"];
@@ -86,8 +91,9 @@ export default {
         watch(
             () => props.greenPaperProp,
             (greenPaperData) => {
-                name.value    = greenPaperData.name;
-                answers.value = greenPaperData.answers;
+                name.value           = greenPaperData.name;
+                answers.value        = greenPaperData.answers;
+                markedAsMaster.value = greenPaperData.markedAsMaster;
             },
             {
                 immediate: true
@@ -101,9 +107,17 @@ export default {
             }
         );
 
+        watch(
+            () => markedAsMaster.value,
+            (newName) => {
+                emit("new-marked-as-master", newName);
+            }
+        );
+
         return {
             name,
             answers,
+            markedAsMaster,
             answerInput,
             handleAnswerInput,
             handleRemoveButton

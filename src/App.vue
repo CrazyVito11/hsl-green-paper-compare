@@ -15,8 +15,9 @@
                     v-for="(greenPaper, greenPaperIndex) in greenPapers"
                     :key="greenPaperIndex"
                     :green-paper-prop="greenPaper"
-                    :mismatched-indexes="conflicts"
+                    :mismatched-indexes="conflicts[greenPaperIndex]"
                     @new-name="greenPapers[greenPaperIndex].name = $event"
+                    @new-marked-as-master="greenPapers[greenPaperIndex].markedAsMaster = $event"
                     @remove="greenPapers.splice(greenPaperIndex, 1)"
                     class="flex-grow shrink-0"
                 ></green-paper>
@@ -41,29 +42,57 @@ export default {
         const addGreenPaper = () => {
             greenPapers.value.push({
                 name: `User #${greenPapers.value.length + 1}`,
+                markedAsMaster: false,
                 answers: []
             });
         };
 
         const conflicts = computed(() => {
-            const greenPaper        = greenPapers.value[0];
-            let greenPaperConflicts = [];
+            let masterGreenPaperIndex  = 0;
+            let masterGreenPaper       = greenPapers.value[masterGreenPaperIndex];
+            let shouldActAsMaster      = false;
+            let allGreenPaperConflicts = [];
 
-            greenPaper.answers.forEach((answer, answerIndex) => {
-                let conflict = false;
-
-                greenPapers.value.forEach((greenPaperToCheck) => {
-                    if (answer !== greenPaperToCheck.answers[answerIndex]) {
-                        conflict = true;
-                    }
-                });
-
-                if (conflict) {
-                    greenPaperConflicts.push(answerIndex);
+            // Search for the master green paper (if any)
+            greenPapers.value.forEach((greenPaper, greenPaperIndex) => {
+                if (greenPaper.markedAsMaster) {
+                    masterGreenPaperIndex = greenPaperIndex;
+                    masterGreenPaper      = greenPapers.value[masterGreenPaperIndex];
+                    shouldActAsMaster     = true;
                 }
             });
 
-            return greenPaperConflicts;
+            greenPapers.value.forEach((greenPaper, greenPaperIndex) => {
+                let greenPaperConflicts = [];
+
+                masterGreenPaper.answers.forEach((answer, answerIndex) => {
+                    let conflict = false;
+
+                    if (shouldActAsMaster) {
+                        // Only test against the master green paper, if it's not currently checking the master green paper
+
+                        if (answer !== greenPaper.answers[answerIndex] && masterGreenPaperIndex !== greenPaperIndex) {
+                            conflict = true;
+                        }
+                    } else {
+                        // General search for conflicts
+
+                        greenPapers.value.forEach((greenPaperToCheck) => {
+                            if (answer !== greenPaperToCheck.answers[answerIndex]) {
+                                conflict = true;
+                            }
+                        });
+                    }
+
+                    if (conflict) {
+                        greenPaperConflicts.push(answerIndex);
+                    }
+                });
+
+                allGreenPaperConflicts[greenPaperIndex] = greenPaperConflicts;
+            })
+
+            return allGreenPaperConflicts;
         });
 
         const updateUrl = () => {
@@ -71,6 +100,7 @@ export default {
                 l: JSON.stringify(greenPapers.value.map((greenPaper) => {
                     return {
                         n: greenPaper.name,
+                        m: greenPaper.markedAsMaster,
                         a: greenPaper.answers.join("_")
                     };
                 }))
@@ -84,7 +114,8 @@ export default {
             JSON.parse(initialData).forEach((greenPaper) => {
                 greenPapers.value.push({
                     name: greenPaper.n,
-                    answers: greenPaper.a.split("_")
+                    markedAsMaster: greenPaper.m,
+                    answers: greenPaper.a ? greenPaper.a.split("_") : []
                 });
             });
         } else {

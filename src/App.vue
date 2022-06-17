@@ -1,5 +1,5 @@
 <template>
-    <div class="flex min-h-screen w-screen bg-gray-100 dark:bg-gray-800 p-4">
+    <div class="flex min-h-screen bg-gray-100 dark:bg-gray-800 p-4">
         <div class="w-full max-w-[1080px] bg-gray-50 dark:bg-gray-600 border-gray-200 p-4 rounded-md shadow-2xl m-auto">
             <div class="flex mb-4">
                 <h1 class="text-2xl dark:text-white">HSL green paper compare</h1>
@@ -10,7 +10,7 @@
                     Add green paper
                 </button>
             </div>
-            <div class="flex w-full">
+            <div class="flex w-full max-w-full">
                 <green-paper
                     v-for="(greenPaper, greenPaperIndex) in greenPapers"
                     :key="greenPaperIndex"
@@ -19,7 +19,7 @@
                     @new-name="greenPapers[greenPaperIndex].name = $event"
                     @new-marked-as-master="greenPapers[greenPaperIndex].markedAsMaster = $event"
                     @remove="greenPapers.splice(greenPaperIndex, 1)"
-                    class="flex-grow shrink-0"
+                    class="flex flex-col flex-grow"
                 ></green-paper>
             </div>
         </div>

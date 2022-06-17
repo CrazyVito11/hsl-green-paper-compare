@@ -3,7 +3,7 @@
         <div class="flex flex-col mb-4">
             <a href="#" @click="handleRemoveButton" class="text-red-500 ml-auto">x</a>
 
-            <input type="text" class="bg-transparent text-center text-2xl dark:text-white" v-model="name">
+            <input type="text" class="flex mx-auto w-full bg-transparent text-center text-2xl dark:text-white" v-model="name">
             <h3 class="text-center text-gray-400 dark:text-gray-200">
                 {{ answers.length }} /
                 <span

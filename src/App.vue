@@ -1,5 +1,5 @@
 <template>
-    <div class="flex min-h-screen w-screen bg-gray-100 dark:bg-gray-800 p-4">
+    <div class="flex min-h-screen bg-gray-100 dark:bg-gray-800 p-4">
         <div class="w-full max-w-[1080px] bg-gray-50 dark:bg-gray-600 border-gray-200 p-4 rounded-md shadow-2xl m-auto">
             <div class="flex mb-4">
                 <h1 class="text-2xl dark:text-white">HSL green paper compare</h1>
@@ -10,7 +10,15 @@
                     Add green paper
                 </button>
             </div>
-            <div class="flex w-full">
+
+            <alert
+                v-if="hasMultipleMasters"
+                title="Warning"
+            >
+                <p>You have marked multiple green papers as Master, only the last one will be used as Master.</p>
+            </alert>
+
+            <div class="flex w-full max-w-full">
                 <green-paper
                     v-for="(greenPaper, greenPaperIndex) in greenPapers"
                     :key="greenPaperIndex"
@@ -19,7 +27,7 @@
                     @new-name="greenPapers[greenPaperIndex].name = $event"
                     @new-marked-as-master="greenPapers[greenPaperIndex].markedAsMaster = $event"
                     @remove="greenPapers.splice(greenPaperIndex, 1)"
-                    class="flex-grow shrink-0"
+                    class="flex flex-col flex-grow"
                 ></green-paper>
             </div>
         </div>
@@ -29,10 +37,12 @@
 <script>
 import GreenPaper from './components/GreenPaper.vue';
 import { computed, ref, watch } from "vue";
+import Alert from "@/components/Alert";
 
 export default {
     name: 'App',
     components: {
+        Alert,
         GreenPaper
     },
     setup() {
@@ -95,6 +105,23 @@ export default {
             return allGreenPaperConflicts;
         });
 
+        const hasMultipleMasters = computed(() => {
+            let hasMaster = false;
+            let hasMultiple = false;
+
+            greenPapers.value.forEach((greenPaper) => {
+                if (greenPaper.markedAsMaster) {
+                    if (hasMaster) {
+                        hasMultiple = true;
+                    }
+
+                    hasMaster = true;
+                }
+            });
+
+            return hasMultiple;
+        });
+
         const updateUrl = () => {
             const queryParams = {
                 l: JSON.stringify(greenPapers.value.map((greenPaper) => {
@@ -137,7 +164,8 @@ export default {
         return {
             greenPapers,
             addGreenPaper,
-            conflicts
+            conflicts,
+            hasMultipleMasters
         };
     }
 };

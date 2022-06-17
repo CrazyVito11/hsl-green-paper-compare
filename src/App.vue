@@ -10,6 +10,14 @@
                     Add green paper
                 </button>
             </div>
+
+            <alert
+                v-if="hasMultipleMasters"
+                title="Warning"
+            >
+                <p>You have marked multiple green papers as Master, only the last one will be used as Master.</p>
+            </alert>
+
             <div class="flex w-full max-w-full">
                 <green-paper
                     v-for="(greenPaper, greenPaperIndex) in greenPapers"
@@ -29,10 +37,12 @@
 <script>
 import GreenPaper from './components/GreenPaper.vue';
 import { computed, ref, watch } from "vue";
+import Alert from "@/components/Alert";
 
 export default {
     name: 'App',
     components: {
+        Alert,
         GreenPaper
     },
     setup() {
@@ -95,6 +105,23 @@ export default {
             return allGreenPaperConflicts;
         });
 
+        const hasMultipleMasters = computed(() => {
+            let hasMaster = false;
+            let hasMultiple = false;
+
+            greenPapers.value.forEach((greenPaper) => {
+                if (greenPaper.markedAsMaster) {
+                    if (hasMaster) {
+                        hasMultiple = true;
+                    }
+
+                    hasMaster = true;
+                }
+            });
+
+            return hasMultiple;
+        });
+
         const updateUrl = () => {
             const queryParams = {
                 l: JSON.stringify(greenPapers.value.map((greenPaper) => {
@@ -137,7 +164,8 @@ export default {
         return {
             greenPapers,
             addGreenPaper,
-            conflicts
+            conflicts,
+            hasMultipleMasters
         };
     }
 };
